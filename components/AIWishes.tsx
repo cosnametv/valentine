@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface Wish {
   title: string;
@@ -10,7 +10,6 @@ interface Props {
   name: string;
 }
 
-// Data for generating 1,700+ unique permutations
 const DATA = {
   openers: [
     "Valentine, I was just thinking about how",
@@ -56,54 +55,70 @@ const DATA = {
   ],
   titles: [
     "A Personal Note", "From My Heart", "Thinking of You", 
-    "Our Sacred Bond", "Happy Birthday", "My Dearest Friend", 
+    "Our Sacred Bond", "Today's Wish", "My Dearest Friend", 
     "Shared Secrets", "Warm Reflections", "To My Favorite Lady",
     "A Rare Friendship", "Heartfelt Wishes", "My Confidante"
   ]
 };
 
+// A simple pseudo-random generator seeded by a number
+const mulberry32 = (a: number) => {
+  return function() {
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  }
+}
+
 export const AIWishes: React.FC<Props> = ({ name }) => {
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const generateRandomWishes = useCallback(() => {
-    const results: Wish[] = [];
-    const usedCombinations = new Set<string>();
-
-    while (results.length < 3) {
-      const oIdx = Math.floor(Math.random() * DATA.openers.length);
-      const tIdx = Math.floor(Math.random() * DATA.themes.length);
-      const cIdx = Math.floor(Math.random() * DATA.closers.length);
-      const titleIdx = Math.floor(Math.random() * DATA.titles.length);
-      
-      const comboKey = `${oIdx}-${tIdx}-${cIdx}`;
-      
-      if (!usedCombinations.has(comboKey)) {
-        usedCombinations.add(comboKey);
-        results.push({
-          title: DATA.titles[titleIdx],
-          content: `${DATA.openers[oIdx]} ${DATA.themes[tIdx]} ${DATA.closers[cIdx]}`
-        });
-      }
-    }
-    setWishes(results);
-  }, []);
-
   useEffect(() => {
-    // Artificial delay for a "loading" feel, then instant generation
-    const timer = setTimeout(() => {
-      generateRandomWishes();
+    // 1. Get current date as a unique number (YYYYMMDD)
+    const now = new Date();
+    const dateSeed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+    
+    // 2. Initialize our seeded random generator
+    const random = mulberry32(dateSeed);
+
+    const generateDailyWishes = () => {
+      const results: Wish[] = [];
+      const usedCombos = new Set<string>();
+
+      // Generate 3 unique wishes for the day
+      while (results.length < 3) {
+        // We use the random() function multiple times to pick indices
+        const oIdx = Math.floor(random() * DATA.openers.length);
+        const tIdx = Math.floor(random() * DATA.themes.length);
+        const cIdx = Math.floor(random() * DATA.closers.length);
+        const titleIdx = Math.floor(random() * DATA.titles.length);
+
+        const comboKey = `${oIdx}-${tIdx}-${cIdx}`;
+        if (!usedCombos.has(comboKey)) {
+          usedCombos.add(comboKey);
+          results.push({
+            title: DATA.titles[titleIdx],
+            content: `${DATA.openers[oIdx]} ${DATA.themes[tIdx]} ${DATA.closers[cIdx]}`
+          });
+        }
+      }
+      setWishes(results);
       setLoading(false);
-    }, 400);
+    };
+
+    // Small delay to simulate "careful selection"
+    const timer = setTimeout(generateDailyWishes, 800);
     return () => clearTimeout(timer);
-  }, [generateRandomWishes]);
+  }, []);
 
   return (
     <div className="space-y-12">
       <div className="text-center space-y-4">
         <h2 className="text-4xl md:text-5xl font-serif text-rose-900 italic">Messages From Me</h2>
-        <p className="text-rose-500 font-light italic text-lg">
-          Over 1,000 unique ways I'm grateful for our friendship
+        <p className="text-rose-500 font-light italic text-lg uppercase tracking-widest">
+          Three special thoughts for today
         </p>
       </div>
 
@@ -120,11 +135,11 @@ export const AIWishes: React.FC<Props> = ({ name }) => {
         ) : (
           wishes.map((wish, index) => (
             <div 
-              key={`${index}-${wish.content.length}`} 
-              className="bg-white p-10 rounded-[2.5rem] border border-rose-100 shadow-sm hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 group relative overflow-hidden flex flex-col justify-between min-h-[320px]"
+              key={`${index}-${wish.title}`} 
+              className="bg-white p-10 rounded-[2.5rem] border border-rose-100 shadow-sm hover:shadow-2xl hover:-translate-y-3 transition-all duration-700 group relative overflow-hidden flex flex-col justify-between min-h-[340px]"
             >
               {/* Decorative Heart Background */}
-              <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-20 transition-all duration-500 group-hover:scale-125">
+              <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-20 transition-all duration-500 group-hover:rotate-12 group-hover:scale-125">
                  <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor" className="text-rose-600">
                     <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
                  </svg>
@@ -140,12 +155,12 @@ export const AIWishes: React.FC<Props> = ({ name }) => {
               </div>
 
               <div className="mt-8 flex items-center justify-between">
-                <div className="flex gap-1">
+                <div className="flex gap-1.5">
                   {[1, 2, 3].map(i => (
                     <div key={i} className="w-1.5 h-1.5 rounded-full bg-rose-200"></div>
                   ))}
                 </div>
-                <span className="text-rose-100 text-5xl font-serif select-none">”</span>
+                <div className="text-rose-100 text-5xl font-serif select-none italic">”</div>
               </div>
             </div>
           ))
@@ -153,22 +168,10 @@ export const AIWishes: React.FC<Props> = ({ name }) => {
       </div>
 
       {!loading && (
-        <div className="flex flex-col items-center gap-6 mt-16">
-          <button 
-            onClick={() => {
-              setLoading(true);
-              setTimeout(() => {
-                generateRandomWishes();
-                setLoading(false);
-              }, 300);
-            }}
-            className="px-10 py-4 bg-rose-50 text-rose-600 rounded-full font-semibold hover:bg-rose-100 hover:shadow-lg transition-all flex items-center gap-3 group active:scale-95 border border-rose-100"
-          >
-            <span className="text-xl group-hover:animate-spin transition-transform">✨</span>
-            <span>See more messages</span>
-          </button>
-          <p className="text-[10px] text-rose-300 uppercase tracking-[0.3em] font-bold">
-            1,728 Unique Heartfelt Permutations
+        <div className="flex flex-col items-center gap-4 mt-16">
+          <div className="h-px w-24 bg-rose-100 mb-4"></div>
+          <p className="text-[11px] text-rose-300 uppercase tracking-[0.4em] font-bold text-center">
+            New messages arrive with every sunrise
           </p>
         </div>
       )}
