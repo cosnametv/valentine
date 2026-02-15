@@ -1,0 +1,1 @@
+Thank you for trusting me with your secrets, for all the shared laughter that fills our days, and for the way you simply make my heart warm just by being you.
