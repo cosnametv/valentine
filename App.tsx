@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { BirthdayHero } from './components/BirthdayHero';
 import { GiftBox } from './components/GiftBox';
@@ -29,7 +28,7 @@ const App: React.FC = () => {
               Something special is waiting...
             </h1>
             <p className="text-lg text-rose-600 font-light opacity-0 animate-[fadeIn_1s_ease-out_0.5s_forwards]">
-              For an amazing Friend, Valentine.
+              For an amazing lady named Valentine.
             </p>
             <div className="opacity-0 animate-[fadeIn_1s_ease-out_1s_forwards]">
               <GiftBox onClick={handleSurprise} />
